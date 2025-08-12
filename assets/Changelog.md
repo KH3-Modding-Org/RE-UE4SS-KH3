@@ -45,6 +45,10 @@ Added override Lua files for ProcessLocalScriptFunction and ProcessInternal [UE4
 
 Added override Lua files for CallFunctionByNameWithArguments [UE4SS #848](https://github.com/UE4SS-RE/RE-UE4SS/pull/848) - M3C3I
 
+Add error messages in places where only error codes were previously logged (e.g. load a C++ mod) [UE4SS #902](https://github.com/UE4SS-RE/RE-UE4SS/pull/902) 
+
+Added `[f: <address_or_module_offset>` section to UE4SS_ObjectDump.txt [UE4SS #866](https://github.com/UE4SS-RE/RE-UE4SS/pull/866) 
+
 ### Live View 
 Added search filter: `IncludeClassNames`. ([UE4SS #472](https://github.com/UE4SS-RE/RE-UE4SS/pull/472)) - Buckminsterfullerene
 
@@ -53,6 +57,9 @@ Added ability to call UFunctions directly from the GUI. ([UE4SS #851](https://gi
 ### UHT Dumper 
 
 ### Lua API 
+
+**Updated Lua version to 5.4.7** ([UE4SS #887](https://github.com/UE4SS-RE/RE-UE4SS/pull/887))
+- This is necessary to compile with Clang.
 
 Added `TMap` implementation. [UE4SS #755](https://github.com/UE4SS-RE/RE-UE4SS/issues/755)
 
@@ -66,6 +73,13 @@ Added global functions `RegisterEndPlayPreHook` and
 `RegisterEndPlayPostHook`. ([UE4SS #769](https://github.com/UE4SS-RE/RE-UE4SS/pull/769))
 
 Errors can now be caught using `pcall` and `xpcall`. ([UE4SS #833](https://github.com/UE4SS-RE/RE-UE4SS/pull/833))
+
+Added custom module searcher with UTF-8 path support for Lua `require()` ([UE4SS #884](https://github.com/UE4SS-RE/RE-UE4SS/pull/884))
+- Added support for case-insensitive Scripts/scripts directory detection
+- Improved error messages showing all attempted paths when module loading fails
+- Fixed `IterateGameDirectories` to properly handle UTF-8 paths and Unicode characters
+- Fixed `CreateLogicModsDirectory` to properly create directories with Unicode paths and handle parent directory creation
+- Fixed global Lua `print` function to properly handle UTF-8 string conversion
 
 #### Types.lua [PR #650](https://github.com/UE4SS-RE/RE-UE4SS/pull/650) 
 - Added `NAME_None` definition 
@@ -99,22 +113,17 @@ Errors can now be caught using `pcall` and `xpcall`. ([UE4SS #833](https://githu
 
 ### C++ API 
 Key binds created with `UE4SSProgram::register_keydown_event` end up being duplicated upon mod hot-reload.  
-
-To fix this, `CppUserModBase::register_keydown_event` has been introduced.  
-
-It's used exactly the same way except without the `UE4SSProgram::` part. ([UE4SS #446](https://github.com/UE4SS-RE/RE-UE4SS/pull/446)) 
+- To fix this, `CppUserModBase::register_keydown_event` has been introduced.  
+- It's used exactly the same way except without the `UE4SSProgram::` part. ([UE4SS #446](https://github.com/UE4SS-RE/RE-UE4SS/pull/446)) 
 
 Added `on_ui_init()`, it fires when the UI is initialized.  
-
-It's intended to use the `UE4SS_ENABLE_IMGUI` macro in this function.  
-
-Failing to do so will cause a crash when you try to render something with imgui. 
+- It's intended to use the `UE4SS_ENABLE_IMGUI` macro in this function.  
+- Failing to do so will cause a crash when you try to render something with imgui. 
 
 BREAKING: Changed `FTransform` constructor to be identical to unreal. 
 
 Added `OpenFor::ReadWrite`, to be used when calling `File::open`.  
-
-This can be used when calling `FileHandle::memory_map`, unlike `OpenFor::Writing`.  ([UE4SS #507](https://github.com/UE4SS-RE/RE-UE4SS/pull/507)) 
+- This can be used when calling `FileHandle::memory_map`, unlike `OpenFor::Writing`.  ([UE4SS #507](https://github.com/UE4SS-RE/RE-UE4SS/pull/507)) 
 
 Added hook for `UGameViewportClient::Tick`. ([UE4SS #767](https://github.com/UE4SS-RE/RE-UE4SS/pull/767))
 
@@ -123,8 +132,6 @@ Added hook for `AActor::EndPlay`. ([UE4SS #769](https://github.com/UE4SS-RE/RE-U
 Added function 'UE4SSProgram::delete_mod'. ([UE4SS #843](https://github.com/UE4SS-RE/RE-UE4SS/pull/843))
 
 Added function 'UE4SSProgram::get_all_input_events'. ([UE4SS #843](https://github.com/UE4SS-RE/RE-UE4SS/pull/843))
-
-### C++ API
 
 Enhanced `TObjectPtr<>` implementation to function as a proper smart pointer. ([UE4SS-RE/RE-UE4SS #850](https://github.com/UE4SS-RE/RE-UE4SS/pull/850), [Re-UE4SS/UEPseudo #125](https://github.com/Re-UE4SS/UEPseudo/pull/125))
 
@@ -141,6 +148,14 @@ UClass* RawPtr = ClassPtr; // implicit conversion
 UClass* RawPtr = ClassPtr.Get(); // explicit access
 ```
 
+Added improved string and path conversion utilities with proper UTF-8 support ([UE4SS #913](https://github.com/UE4SS-RE/RE-UE4SS/pull/913))
+- Rewrote `to_charT_string_path()` to properly handle UTF-8 and UTF-16 encodings
+- Added `ensure_str_as<CharT>()` for explicit target character type conversion
+- Added `to_utf8_string()` for convenient UTF-8 string conversion
+- Added `normalize_path_for_lua()` to convert paths to UTF-8 with forward slashes for Lua compatibility
+- Added `utf8_to_wpath()` to convert UTF-8 paths to Windows wide strings
+- **BREAKING:** `to_charT_string_path()` now returns UTF-8 encoded strings for char type instead of locale-dependent encoding
+
 ### BPModLoader 
 
 ### Experimental 
@@ -149,6 +164,11 @@ UClass* RawPtr = ClassPtr.Get(); // explicit access
 ## Changes 
 
 ### General 
+
+Updated ImGui from v1.89 to v1.91.9b for improved functionality and Clang compatability 
+
+Updated ImGuiTextEdit to support newest ImGui API 
+
 Changed the default location of the UE4SS release assets to be in `game executable directory/ue4ss/`. This change is backwards compatible with the old location. ([UE4SS #506](https://github.com/UE4SS-RE/RE-UE4SS/pull/506)) - Buckminsterfullerene 
 
 Updated PatternSleuth submodule ([UE4SS #638](https://github.com/UE4SS-RE/RE-UE4SS/pull/638)) 
@@ -292,6 +312,8 @@ Fixed errors being logged twice. ([UE4SS #833](https://github.com/UE4SS-RE/RE-UE
 Fixed `RegisterHook` and `UnregisterHook` not working properly with functions that have spaces in their
 names. ([UE4SS #827](https://github.com/UE4SS-RE/RE-UE4SS/pull/827)
 
+Fixed an error with Object properties causing stack corruption. ([UE4SS #939](https://github.com/UE4SS-RE/RE-UE4SS/pull/939)
+
 ### C++ API 
 Fixed a crash caused by a race condition enabled by C++ mods using `UE4SS_ENABLE_IMGUI` in their constructor ([UE4SS #481](https://github.com/UE4SS-RE/RE-UE4SS/pull/481)) 
 
@@ -320,6 +342,11 @@ Fixed `LoadMod` function issue that variables would go out-of-scope in the `Exec
 ; True if the game is built as Debug, Development, or Test.
 ; Default: false
 DebugBuild =
+
+[ObjectDumper]
+; Whether to display the offset from the main executable for functions instead of the function pointer
+; Default: 0
+UseModuleOffsets = 0
 
 [Debug]
 RenderMode = ExternalThread
