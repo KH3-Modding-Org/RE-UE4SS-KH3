@@ -5,7 +5,8 @@
 
 namespace RC::LuaType
 {
-    UDataTable::UDataTable(Unreal::UDataTable* object) : RemoteObjectBase<Unreal::UDataTable, UDataTable>(object)
+    UDataTable::UDataTable(Unreal::UDataTable* object)
+        : RemoteObjectBase<Unreal::UDataTable, UDataTableName>(object)
     {
     }
 
@@ -52,7 +53,7 @@ namespace RC::LuaType
     template <LuaMadeSimple::Type::IsFinal is_final>
     auto UDataTable::setup_member_functions(const LuaMadeSimple::Lua::Table& table) -> void
     {
-        Super::setup_member_funcitons<LuaMadeSimple::Type::IsFinal::No>(table);
+        Super::setup_member_functions<LuaMadeSimple::Type::IsFinal::No>(table);
 
         table.add_pair("GetRowNames", [](const LuaMadeSimple::Lua& lua) -> int {
             // TODO: May not have overloads
@@ -61,7 +62,8 @@ No overload found for function 'UDataTable.GetRowNames'.
             )"};
 
             auto& lua_object = lua.get_userdata<UDataTable>();
-            LuaType::TArray::construct(lua_object.get_remote_cpp_object()->GetRowNames());
+            auto row_names = lua_object.get_remote_cpp_object()->GetRowNames();
+            //LuaType::TArray::construct(row_names);
             return 1;
         });
     }
