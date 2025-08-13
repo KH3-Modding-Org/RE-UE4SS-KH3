@@ -1,6 +1,5 @@
 ﻿#include <LuaType/LuaFName.hpp>
 #include <LuaType/LuaUDataTable.hpp>
-#include <LuaType/LuaTArray.hpp>
 #include <Unreal/Engine/UDataTable.hpp>
 
 namespace RC::LuaType
@@ -63,7 +62,16 @@ No overload found for function 'UDataTable.GetRowNames'.
 
             auto& lua_object = lua.get_userdata<UDataTable>();
             auto row_names = lua_object.get_remote_cpp_object()->GetRowNames();
-            //LuaType::TArray::construct(row_names);
+
+            // Map array to LUA table
+            auto table = lua.prepare_new_table();
+            int index = 1;
+            for (auto row_name : row_names)
+            {
+                table.add_pair(index, row_name);
+                index+=1;
+            }
+            table.make_local();
             return 1;
         });
     }
