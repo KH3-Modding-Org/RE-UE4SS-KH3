@@ -4,8 +4,7 @@
 
 namespace RC::LuaType
 {
-    UDataTable::UDataTable(Unreal::UDataTable* object)
-        : RemoteObjectBase<Unreal::UDataTable, UDataTableName>(object)
+    UDataTable::UDataTable(Unreal::UDataTable* object) : RemoteObjectBase<Unreal::UDataTable, UDataTableName>(object)
     {
     }
 
@@ -54,26 +53,24 @@ namespace RC::LuaType
     {
         Super::setup_member_functions<LuaMadeSimple::Type::IsFinal::No>(table);
 
-        table.add_pair("GetRowNames", [](const LuaMadeSimple::Lua& lua) -> int {
-            // TODO: May not have overloads
-            std::string error_overload_not_found{R"(
-No overload found for function 'UDataTable.GetRowNames'.
-            )"};
-
+         table.add_pair("GetRowNames", [](const LuaMadeSimple::Lua& lua) -> int {
             auto& lua_object = lua.get_userdata<UDataTable>();
             auto row_names = lua_object.get_remote_cpp_object()->GetRowNames();
-
+             
+            
             // Map array to LUA table
-            auto table = lua.prepare_new_table();
+            auto return_array_table = lua.prepare_new_table();
             int index = 1;
-            for (auto row_name : row_names)
+            for (Unreal::FName row_name : row_names)
             {
-                table.add_pair(index, row_name);
-                index+=1;
+                // Get a weird error when using add_pair(...)
+                return_array_table.add_key(index++);
+                return_array_table.add_key(row_name);
+                return_array_table.fuse_pair();
             }
-            table.make_local();
+            return_array_table.make_local();
             return 1;
-        });
+         });
     }
 
 } // namespace RC::LuaType
