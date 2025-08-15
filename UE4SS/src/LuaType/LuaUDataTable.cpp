@@ -2,6 +2,8 @@
 #include <LuaType/LuaUDataTable.hpp>
 #include <Unreal/Engine/UDataTable.hpp>
 
+#include "LuaLibrary.hpp"
+
 namespace RC::LuaType
 {
     UDataTable::UDataTable(Unreal::UDataTable* object) : RemoteObjectBase<Unreal::UDataTable, UDataTableName>(object)
@@ -53,24 +55,64 @@ namespace RC::LuaType
     {
         Super::setup_member_functions<LuaMadeSimple::Type::IsFinal::No>(table);
 
-         table.add_pair("GetRowNames", [](const LuaMadeSimple::Lua& lua) -> int {
-            auto& lua_object = lua.get_userdata<UDataTable>();
-            auto row_names = lua_object.get_remote_cpp_object()->GetRowNames();
-             
-            
-            // Map array to LUA table
-            auto return_array_table = lua.prepare_new_table();
-            int index = 1;
-            for (Unreal::FName row_name : row_names)
-            {
-                // Get a weird error when using add_pair(...)
-                return_array_table.add_key(index++);
-                return_array_table.add_key(row_name);
-                return_array_table.fuse_pair();
-            }
-            return_array_table.make_local();
-            return 1;
-         });
+        table.add_pair("IsValid",
+                       [](const LuaMadeSimple::Lua& lua) -> int {
+                           auto& lua_object = lua.get_userdata<UDataTable>();
+
+                           lua.set_bool(lua_object.get_remote_cpp_object());
+
+                           return 1;
+                       });
+
+        table.add_pair("GetRowNames",
+                       [](const LuaMadeSimple::Lua& lua) -> int {
+                           Output::send<LogLevel::Normal>(STR("UDataTable::GetRowNames: Starting method call"));
+                           auto& lua_object = lua.get_userdata<UDataTable>();
+                           Unreal::UDataTable* cpp_object = lua_object.get_remote_cpp_object();
+
+                           // auto object_name = cpp_object->get;
+                           // Output::send<LogLevel::Normal>(STR("UDataTable::GetRowNames: Table name - {}"), to_wstring(object_name));
+
+                           Unreal::TArray<Unreal::FName> row_names;
+
+                           try
+                           {
+                               Output::send<LogLevel::Normal>(STR("UDataTable::GetRowNames: Fetching row names"));
+                               row_names = cpp_object->GetRowNames();
+                           }
+                           catch (const std::exception& e)
+                           {
+                               lua.throw_error(e.what());
+                           }
+
+                           Output::send<LogLevel::Normal>(STR("UDataTable::GetRowNames: Mapping array to LUA table"));
+                           // Map array to LUA table
+                           auto return_array_table = lua.prepare_new_table();
+                           int index = 1;
+                           for (Unreal::FName row_name : row_names)
+                           {
+                               // Get a weird error when using add_pair(...)
+                               return_array_table.add_key(index++);
+                               return_array_table.add_key(row_name);
+                               return_array_table.fuse_pair();
+                           }
+                           return_array_table.make_local();
+                           return 1;
+                       }
+                );
+
+        if constexpr (is_final == LuaMadeSimple::Type::IsFinal::Yes)
+        {
+            table.add_pair("type",
+                           [](const LuaMadeSimple::Lua& lua) -> int {
+                               lua.set_string(ClassName::ToString());
+                               return 1;
+                           });
+
+            // If this is the final object then we also want to finalize creating the table
+            // If not then it's the responsibility of the overriding object to call 'make_global()'
+            // table.make_global(ClassName::ToString());
+        }
     }
 
 } // namespace RC::LuaType
