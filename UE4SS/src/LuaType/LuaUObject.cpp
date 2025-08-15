@@ -10,6 +10,7 @@
 #include <LuaType/LuaTSoftClassPtr.hpp>
 #include <LuaType/LuaUClass.hpp>
 #include <LuaType/LuaUEnum.hpp>
+#include <LuaType/LuaUDataTable.hpp>
 #include <LuaType/LuaUFunction.hpp>
 #include <LuaType/LuaUInterface.hpp>
 #include <LuaType/LuaUObject.hpp>
@@ -33,6 +34,7 @@
 #include <Unreal/Property/NumericPropertyTypes.hpp>
 #include <Unreal/UClass.hpp>
 #include <Unreal/UEnum.hpp>
+#include <Unreal/Engine/UDataTable.hpp>
 #include <Unreal/UFunction.hpp>
 #include <Unreal/UInterface.hpp>
 #include <Unreal/UScriptStruct.hpp>
@@ -344,6 +346,10 @@ namespace RC::LuaType
         else if (object->IsA<Unreal::UEnum>())
         {
             UEnum::construct(lua, static_cast<Unreal::UEnum*>(object));
+        }
+        else if (object->IsA<Unreal::UDataTable>())
+        {
+            UDataTable::construct(lua, static_cast<Unreal::UDataTable*>(object));
         }
         else if (object->IsA<Unreal::UWorld>())
         {
