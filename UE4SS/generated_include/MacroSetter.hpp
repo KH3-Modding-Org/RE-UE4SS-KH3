@@ -878,6 +878,18 @@ if (auto val = parser.get_int64(STR("UEnum"), STR("EnumFlags_Internal"), -1); va
 if (auto val = parser.get_int64(STR("UEnum"), STR("EnumPackage"), -1); val != -1)
     Unreal::UEnum::MemberOffsets.emplace(STR("EnumPackage"), static_cast<int32_t>(val));
 if (auto val = parser.get_int64(STR("UEnum"), STR("Names"), -1); val != -1) Unreal::UEnum::MemberOffsets.emplace(STR("Names"), static_cast<int32_t>(val));
+if (auto val = parser.get_int64(STR("UDataTable"), STR("ImportKeyField"), -1); val != -1)
+    Unreal::UDataTable::MemberOffsets.emplace(STR("ImportKeyField"), static_cast<int32_t>(val));
+if (auto val = parser.get_int64(STR("UDataTable"), STR("RowMap"), -1); val != -1)
+    Unreal::UDataTable::MemberOffsets.emplace(STR("RowMap"), static_cast<int32_t>(val));
+if (auto val = parser.get_int64(STR("UDataTable"), STR("RowStruct"), -1); val != -1)
+    Unreal::UDataTable::MemberOffsets.emplace(STR("RowStruct"), static_cast<int32_t>(val));
+if (auto val = parser.get_int64(STR("UDataTable"), STR("bIgnoreExtraFields"), -1); val != -1)
+    Unreal::UDataTable::MemberOffsets.emplace(STR("bIgnoreExtraFields"), static_cast<int32_t>(val));
+if (auto val = parser.get_int64(STR("UDataTable"), STR("bIgnoreMissingFields"), -1); val != -1)
+    Unreal::UDataTable::MemberOffsets.emplace(STR("bIgnoreMissingFields"), static_cast<int32_t>(val));
+if (auto val = parser.get_int64(STR("UDataTable"), STR("bStripFromClientBuilds"), -1); val != -1)
+    Unreal::UDataTable::MemberOffsets.emplace(STR("bStripFromClientBuilds"), static_cast<int32_t>(val));
 if (auto val = parser.get_int64(STR("FMapProperty"), STR("KeyProp"), -1); val != -1)
     Unreal::FMapProperty::MemberOffsets.emplace(STR("KeyProp"), static_cast<int32_t>(val));
 if (auto val = parser.get_int64(STR("FMapProperty"), STR("ValueProp"), -1); val != -1)
