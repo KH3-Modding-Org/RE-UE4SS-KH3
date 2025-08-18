@@ -70,11 +70,7 @@ namespace RC::LuaType
                            auto& lua_object = lua.get_userdata<UDataTable>();
                            Unreal::UDataTable* cpp_object = lua_object.get_remote_cpp_object();
 
-                           // auto object_name = cpp_object->get;
-                           // Output::send<LogLevel::Normal>(STR("UDataTable::GetRowNames: Table name - {}"), to_wstring(object_name));
-
                            Unreal::TArray<Unreal::FName> row_names;
-
                            try
                            {
                                Output::send<LogLevel::Normal>(STR("UDataTable::GetRowNames: Fetching row names"));
@@ -92,8 +88,10 @@ namespace RC::LuaType
                            for (Unreal::FName row_name : row_names)
                            {
                                // Get a weird error when using add_pair(...)
+
                                return_array_table.add_key(index++);
-                               return_array_table.add_key(row_name);
+                               StringType parsed_row_name = to_wstring(row_name.ToString()).c_str();
+                               return_array_table.add_value(parsed_row_name);
                                return_array_table.fuse_pair();
                            }
                            return_array_table.make_local();
