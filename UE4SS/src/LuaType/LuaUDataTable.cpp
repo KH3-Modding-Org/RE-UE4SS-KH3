@@ -6,6 +6,22 @@
 
 namespace RC::LuaType
 {
+    std::string wstring_to_string(const std::wstring& wstr)
+    {
+        using convert_type = std::codecvt_utf8<wchar_t>;
+        std::wstring_convert<convert_type, wchar_t> converter;
+
+        try
+        {
+            return converter.to_bytes(wstr);
+        }
+        catch (const std::exception& e)
+        {
+            printf("Error converting wstring to string: %s\n", e.what());
+            return "";
+        }
+    }
+
     UDataTable::UDataTable(Unreal::UDataTable* object) : RemoteObjectBase<Unreal::UDataTable, UDataTableName>(object)
     {
     }
@@ -85,14 +101,20 @@ namespace RC::LuaType
                            // Map array to LUA table
                            auto return_array_table = lua.prepare_new_table();
                            int index = 1;
-                           for (Unreal::FName row_name : row_names)
+                           for (int i = 0; i < row_names.Num(); ++i)
                            {
-                               // Get a weird error when using add_pair(...)
+                               Unreal::FName row_name = row_names[i];
+                               RC::StringType fstring_row_name = row_name.ToString();
+                               std::wstring wstring_row_name = to_wstring(fstring_row_name);
+                               std::string string_row_name = wstring_to_string(wstring_row_name);
 
-                               return_array_table.add_key(index++);
-                               StringType parsed_row_name = to_wstring(row_name.ToString()).c_str();
-                               return_array_table.add_value(parsed_row_name);
+                               const char* c_style_name = string_row_name.c_str();
+
+                               return_array_table.add_key(index);
+                               return_array_table.add_value(c_style_name);
                                return_array_table.fuse_pair();
+
+                               index += 1;
                            }
                            return_array_table.make_local();
                            return 1;
