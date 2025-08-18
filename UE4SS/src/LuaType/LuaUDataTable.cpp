@@ -82,14 +82,12 @@ namespace RC::LuaType
 
         table.add_pair("GetRowNames",
                        [](const LuaMadeSimple::Lua& lua) -> int {
-                           Output::send<LogLevel::Normal>(STR("UDataTable::GetRowNames: Starting method call"));
                            auto& lua_object = lua.get_userdata<UDataTable>();
                            Unreal::UDataTable* cpp_object = lua_object.get_remote_cpp_object();
 
                            Unreal::TArray<Unreal::FName> row_names;
                            try
                            {
-                               Output::send<LogLevel::Normal>(STR("UDataTable::GetRowNames: Fetching row names"));
                                row_names = cpp_object->GetRowNames();
                            }
                            catch (const std::exception& e)
@@ -97,7 +95,6 @@ namespace RC::LuaType
                                lua.throw_error(e.what());
                            }
 
-                           Output::send<LogLevel::Normal>(STR("UDataTable::GetRowNames: Mapping array to LUA table"));
                            // Map array to LUA table
                            auto return_array_table = lua.prepare_new_table();
                            int index = 1;
@@ -117,6 +114,55 @@ namespace RC::LuaType
                                index += 1;
                            }
                            return_array_table.make_local();
+                           return 1;
+                       }
+                );
+
+        table.add_pair("HasRowWithName",
+                       [](const LuaMadeSimple::Lua& lua) -> int {
+                           auto& lua_object = lua.get_userdata<UDataTable>();
+                           Unreal::UDataTable* cpp_object = lua_object.get_remote_cpp_object();
+
+                           StringType param_row_name{};
+
+                           Unreal::TArray<Unreal::FName> row_names;
+                           try
+                           {
+                               row_names = cpp_object->GetRowNames();
+                           }
+                           catch (const std::exception& e)
+                           {
+                               lua.throw_error(e.what());
+                           }
+
+                           // P1 (RowName), stirng
+                           if (lua.is_string())
+                           {
+                               param_row_name = ensure_str(lua.get_string());
+                           }
+                           else
+                           {
+                                lua.throw_error("'UDataTable::HasRowWithName' - Could not load parameter for \"RowName\"");
+                           }
+
+                           int index = 1;
+                           for (int i = 0; i < row_names.Num(); ++i)
+                           {
+                               Unreal::FName row_name = row_names[i];
+                               auto fstring_row_name = row_name.ToString();
+
+                               if (fstring_row_name == to_wstring(param_row_name))
+                               {
+                                   // Matched!
+                                   lua.set_bool(true);
+                                   return 1;
+                               }
+
+                               index += 1;
+                           }
+
+                           // Did not find row with given row name
+                           lua.set_bool(false);
                            return 1;
                        }
                 );
