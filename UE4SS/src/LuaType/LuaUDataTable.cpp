@@ -1,8 +1,9 @@
-﻿#include <LuaType/LuaFName.hpp>
-#include <LuaType/LuaUDataTable.hpp>
+﻿#include <LuaType/LuaUDataTable.hpp>
 #include <Unreal/Engine/UDataTable.hpp>
+#include <Helpers/String.hpp>
 
 #include "LuaLibrary.hpp"
+#include "UnrealDef.hpp"
 
 namespace RC::LuaType
 {
@@ -108,51 +109,50 @@ namespace RC::LuaType
                        }
                 );
 
-        table.add_pair("HasRowWithName",
+        table.add_pair("FindRow",
                        [](const LuaMadeSimple::Lua& lua) -> int {
                            auto& lua_object = lua.get_userdata<UDataTable>();
                            Unreal::UDataTable* cpp_object = lua_object.get_remote_cpp_object();
 
                            StringType param_row_name{};
+                           StringType param_context_string{};
 
-                           Unreal::TArray<Unreal::FName> row_names;
-                           try
-                           {
-                               row_names = cpp_object->GetRowNames();
-                           }
-                           catch (const std::exception& e)
-                           {
-                               lua.throw_error(e.what());
-                           }
-
-                           // P1 (RowName), stirng
+                           // P1 (RowName), string
                            if (lua.is_string())
                            {
                                param_row_name = ensure_str(lua.get_string());
                            }
                            else
                            {
-                                lua.throw_error("'UDataTable::HasRowWithName' - Could not load parameter for \"RowName\"");
+                               lua.throw_error("'UDataTable::HasRowWithName' - Could not load parameter for \"RowName\"");
                            }
 
-                           int index = 1;
-                           for (int i = 0; i < row_names.Num(); ++i)
+                           // P2 (ContextString), string
+                           // Used for error handling
+                           if (lua.is_string())
                            {
-                               Unreal::FName row_name = row_names[i];
-                               auto fstring_row_name = row_name.ToString();
-
-                               if (fstring_row_name == to_wstring(param_row_name))
-                               {
-                                   // Matched!
-                                   lua.set_bool(true);
-                                   return 1;
-                               }
-
-                               index += 1;
+                               param_context_string = ensure_str(lua.get_string());
+                           }
+                           else
+                           {
+                               lua.throw_error("'UDataTable::HasRowWithName' - Could not load parameter for \"ContextString\"");
                            }
 
-                           // Did not find row with given row name
-                           lua.set_bool(false);
+                           try
+                           {
+                               Unreal::FName fname_row = FName(param_row_name, Unreal::FNAME_Find);
+                               // TODO: Can't use the StringType due to a stack overflow identified by the compiler.  
+                               auto parsed_context_string = FromCharTypePtr<TCHAR>(param_context_string.c_str());
+                               // TODO: The type passed to FindRow is not super clear... The template only denotes generic type T
+                               // This is giving a lot of errors as a result...
+                               auto rows = cpp_object->FindRow<UScriptStruct*>(
+                                       fname_row,
+                                       parsed_context_string);
+                           }
+                           catch (const std::exception& e)
+                           {
+                               lua.throw_error(e.what());
+                           }
                            return 1;
                        }
                 );
