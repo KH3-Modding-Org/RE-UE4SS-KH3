@@ -100,7 +100,7 @@ namespace RC::LuaType
                            for (auto [index, name] : row_names | std::views::enumerate)
                            {
                                return_array_table.add_key(index);
-                               return_array_table.add_value(to_string(name.ToString()).c_str());
+                               return_array_table.add_value(to_utf8_string(name.ToString()).c_str());
                                return_array_table.fuse_pair();
                            }
                            return_array_table.make_local();
