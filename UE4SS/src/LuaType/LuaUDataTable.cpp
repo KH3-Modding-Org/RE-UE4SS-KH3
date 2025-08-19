@@ -97,21 +97,11 @@ namespace RC::LuaType
 
                            // Map array to LUA table
                            auto return_array_table = lua.prepare_new_table();
-                           int index = 1;
-                           for (int i = 0; i < row_names.Num(); ++i)
+                           for (auto [index, name] : row_names | std::views::enumerate)
                            {
-                               Unreal::FName row_name = row_names[i];
-                               RC::StringType fstring_row_name = row_name.ToString();
-                               std::wstring wstring_row_name = to_wstring(fstring_row_name);
-                               std::string string_row_name = wstring_to_string(wstring_row_name);
-
-                               const char* c_style_name = string_row_name.c_str();
-
                                return_array_table.add_key(index);
-                               return_array_table.add_value(c_style_name);
+                               return_array_table.add_value(to_string(name.ToString()).c_str());
                                return_array_table.fuse_pair();
-
-                               index += 1;
                            }
                            return_array_table.make_local();
                            return 1;
