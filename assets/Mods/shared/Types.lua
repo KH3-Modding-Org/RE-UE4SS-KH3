@@ -1140,3 +1140,11 @@ function UEnum:RemoveFromNamesAt(Index, Count) end
 ---@param Count integer
 ---@param AllowShrinking boolean
 function UEnum:RemoveFromNamesAt(Index, Count, AllowShrinking) end
+
+---@class UDataTable
+
+local UDataTable = {}
+
+--- Returns the `FName` that corresponds to the specified value.
+---@param Value table
+function UDataTable:GetRowNames() end
