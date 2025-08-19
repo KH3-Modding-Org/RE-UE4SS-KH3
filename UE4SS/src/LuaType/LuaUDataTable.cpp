@@ -143,11 +143,10 @@ namespace RC::LuaType
                                Unreal::FName fname_row = FName(param_row_name, Unreal::FNAME_Find);
                                // TODO: Can't use the StringType due to a stack overflow identified by the compiler.  
                                auto parsed_context_string = FromCharTypePtr<TCHAR>(param_context_string.c_str());
-                               // TODO: The type passed to FindRow is not super clear... The template only denotes generic type T
-                               // This is giving a lot of errors as a result...
-                               auto rows = cpp_object->FindRow<UScriptStruct*>(
-                                       fname_row,
-                                       parsed_context_string);
+                               // Bypassing initial type check
+                               unsigned char* row_data = cpp_object->FindRowUnchecked(fname_row);
+                               // TODO: Builds. But need to test this. 
+                               auto row_struct = reinterpret_cast<UScriptStruct*>(row_data);
                            }
                            catch (const std::exception& e)
                            {
